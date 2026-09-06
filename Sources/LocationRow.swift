@@ -21,7 +21,7 @@ struct LocationRow: View {
         }
     }
 
-    private var flagAndName: (code: String?, name: String) {
+    private var flagAndName: (code: String?, remainder: String) {
         extractFlagCode(row.displayName)
     }
 
@@ -35,7 +35,7 @@ struct LocationRow: View {
             FlagBadge(code: flagAndName.code, size: 24)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(flagAndName.name)
+                Text(flagAndName.remainder)
                     .foregroundColor(Theme.textPrimary(dark: dark))
                     .lineLimit(1)
                 if let protocolLabel {
