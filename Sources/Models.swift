@@ -1,25 +1,18 @@
 import Foundation
-
 enum VpnState { case disconnected, connecting, connected, error }
-
 enum PingState { case unknown, testing, ok, failed }
-
 enum ProtocolPreference: String, CaseIterable { case vless = "VLESS", hysteria2 = "HYSTERIA2" }
-
 struct ServerEntry: Identifiable, Hashable {
     let id = UUID()
     let index: Int
     let displayName: String
     let protocolName: String // "vless" or "hysteria2"
-
     var stableKey: String { "\(protocolName)_\(index)" }
 }
-
 struct PingInfo {
     let state: PingState
     let delayMs: Int?
 }
-
 struct LocationGroup: Identifiable {
     var id: String { key }
     let key: String
@@ -27,7 +20,6 @@ struct LocationGroup: Identifiable {
     let vlessEntry: ServerEntry?
     let hysteriaEntry: ServerEntry?
 }
-
 enum LocationLogic {
     static func buildGroups(hysteria: [ServerEntry], vless: [ServerEntry]) -> [LocationGroup] {
         var order: [String: LocationGroup] = [:]
@@ -46,19 +38,16 @@ enum LocationLogic {
         }
         return keys.compactMap { order[$0] }
     }
-
     static func resolve(group: LocationGroup?, protocolPref: ProtocolPreference) -> ServerEntry? {
         guard let group else { return nil }
         let preferred = protocolPref == .vless ? group.vlessEntry : group.hysteriaEntry
         let fallback = protocolPref == .vless ? group.hysteriaEntry : group.vlessEntry
         return preferred ?? fallback
     }
-
     static func groupState(_ group: LocationGroup, protocolPref: ProtocolPreference, ping: [String: PingInfo]) -> PingState {
         guard let resolved = resolve(group: group, protocolPref: protocolPref) else { return .unknown }
         return ping[resolved.stableKey]?.state ?? .unknown
     }
-
     static func resolveAuto(hysteria: [ServerEntry], vless: [ServerEntry], protocolPref: ProtocolPreference, ping: [String: PingInfo]) -> ServerEntry? {
         let pool = protocolPref == .vless ? vless : hysteria
         let ok = pool.filter { ping[$0.stableKey]?.state == .ok }
@@ -68,16 +57,20 @@ enum LocationLogic {
         return pool.first
     }
 }
-
 /// Stand-in for the real subscription/ping machinery - visual-only demo,
 /// nothing here touches the network.
 enum DemoServers {
     static let locationNames = [
-        "🇫🇮 Финляндия", "🇩🇪 Германия", "🇳🇱 Нидерланды", "🇺🇸 США",
-        "🇦🇪 ОАЭ", "🇸🇬 Сингапур", "🇹🇷 Турция", "🇵🇱 Польша",
-        "🇫🇷 Франция", "🇬🇧 Великобритания"
+        "🇷🇺 Россия",
+        "🇺🇸 США",
+        "🇫🇮 Финляндия",
+        "🇵🇱 Польша",
+        "🇳🇱 Нидерланды",
+        "🇸🇪 Швеция",
+        "🇳🇱🏳 Обход белых списков #1",
+        "🇫🇮🏳 Обход белых списков #2",
+        "🇵🇱🏳 Обход белых списков #3"
     ]
-
     static func generate() -> [ServerEntry] {
         var servers: [ServerEntry] = []
         for name in locationNames {
@@ -87,7 +80,6 @@ enum DemoServers {
         return servers
     }
 }
-
 enum DemoPing {
     static func pingAll(_ servers: [ServerEntry]) async -> [String: PingInfo] {
         guard !servers.isEmpty else { return [:] }
